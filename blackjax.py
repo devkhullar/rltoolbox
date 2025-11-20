@@ -93,14 +93,14 @@ class BlackjackAgent:
 
 # Training hyperparameters
 learning_rate = 0.01        # How fast to learn (higher = faster but less stable)
-n_episodes = 100_000        # Number of hands to practice
+n_episodes = 100_000      # Number of hands to practice
 start_epsilon = 1.0         # Start with 100% random actions
 epsilon_decay = start_epsilon / (n_episodes / 2)  # Reduce exploration over time
 final_epsilon = 0.1         # Always keep some exploration
 
 # Create environment and agent
 env = gym.make("Blackjack-v1", natural='False', sab=False, 
-               render_mode='human'
+            #    render_mode='human'
                )
 env = gym.wrappers.RecordEpisodeStatistics(env, buffer_length=n_episodes)
 

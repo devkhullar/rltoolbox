@@ -5,9 +5,9 @@ import random
 env = gym.make('Taxi-v3')
 
 alpha = 0.9
-gamma = 0.95
+gamma = 0.9
 epsilon = 1.0
-epsilon_decay = 0.9995
+epsilon_decay = 0.0001
 min_epsilon = 0.01
 num_episodes = 10_000
 max_steps = 100
@@ -41,7 +41,7 @@ for episode in range(num_episodes):
     epsilon = max(min_epsilon, epsilon * epsilon_decay)
 
 env = gym.make('Taxi-v3', 
-            #    render_mode='human'
+               render_mode='human'
                )
 
 for episode in range(5):
