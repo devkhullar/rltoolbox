@@ -2,6 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import tqdm
 
 def k_armed_testbed(arms:int=10, runs:int=2000, iteration:int=0):
     '''A testbed for the k-armed bandit problem
@@ -30,49 +31,37 @@ def k_armed_testbed(arms:int=10, runs:int=2000, iteration:int=0):
     plt.ylabel('Reward Distribution')
     plt.show()
 
-def bandit(action, runs):
-    return np.random.normal(
-        loc=action[np.arange(runs), action],
-        scale=1.0
-    )
+def bandit(action, problem, action_value):
+    return np.random.normal(q_star[problem, action], 1)
 
-def simple_bandit_algo(arms=10, epsilon=0.1, step_size=1000, runs=2000):
-    expected_reward = np.zeros((runs, arms))
-    steps = 0
-    # for i in range(runs):
-    for i in range(step_size):
-        if np.random.rand() < epsilon:
-            action = np.argmax(
-            np.random.random(expected_reward.shape) * (expected_reward==expected_reward.max(axis=1, keepdims=True)), # breaking ties randomly
-            axis=1
-        )
-        else:
-            action = np.argmax(
-                np.random.random()
-            )
-        
-        action_value = np.random.normal(
-            loc=0.0,
-            scale=1.0,
-            size=(runs, arms)
-        )
+def simple_max(Q):
+    return np.random.choice(np.flatnonzero(Q == Q.max())) # breaking ties randomly
 
-        reward = bandit(action, runs)
+def simple_bandit(k, epsilon, steps, initial_Q, alpha=0):
+    rewards = np.zeros(steps)
+    actions = np.zeros(steps)
+    
+    for i in tqdm(range(num_problems)):
+        Q = np.ones(k) * initial_Q # initial Q
+        N = np.zeros(k)  # initalize number of rewards given
+        best_action = np.argmax(q_star[i])
+        for t in range(steps):
+            if np.random.rand() < epsilon: # explore
+                a = np.random.randint(k)
+            else: # exploit
+                a = simple_max(Q, N, t)
 
-        steps += steps + 1
-        expected_reward += expected_reward + 1 / steps * (reward - action_value)
+            reward = bandit(a, i)
 
+            N[a] += 1
+            if alpha > 0:
+                Q[a] = Q[a] + (reward - Q[a]) * alpha
+            else:
+                Q[a] = Q[a] + (reward - Q[a]) / N[a]
 
-    return expected_reward
-
-k_armed_testbed(10)
-
-# simple_bandit_algo()
-
-T = 5
-epsilon = 0
-for i in range(1, 6):
-    for j in range(1, 100):
-        epsilon = 1 / 2 * (1 + np.cos(j / 5 * np.pi)) * epsilon
-        print(epsilon)
-
+            rewards[t] += reward
+            
+            if a == best_action:
+                actions[t] += 1
+    
+    return np.divide(rewards,num_problems), np.divide(actions,num_problems)
